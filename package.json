@@ -6,6 +6,7 @@
     "@supabase/supabase-js": "^2.49.4",
     "body-parser": "^1.20.3",
     "micro": "^10.0.1",
-    "twilio": "^4.23.0"
+    "twilio": "^4.23.0",
+    "typescript": "^5.8.3"
   }
 }
