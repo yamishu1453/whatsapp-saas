@@ -1,31 +1,19 @@
 // api/webhook.js
-import { urlencoded } from "body-parser";
-import { createServer } from "micro";
-import { MessagingResponse } from "twilio").twiml;
+import { json } from "@vercel/node"; // veya next/server
+import { MessagingResponse } from "twilio/lib/twiml/VoiceResponse.js";
+import { createClient } from "@supabase/supabase-js";
 
-// micro + body-parser kullanarak POST verisini alıyoruz
-const parser = urlencoded({ extended: false });
-
-const handler = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
-    res.statusCode = 405;
-    return res.end("Method Not Allowed");
+    return res.status(405).end("Method Not Allowed");
   }
 
-  // body-parser ile req.body'yi dolduruyoruz
-  await parser(req, res);
-
-  console.log("🔔 Webhook body:", req.body);
-  const incoming = req.body.Body || "";
-
-  // TwiML cevabı hazırlıyoruz
   const twiml = new MessagingResponse();
-  twiml.message("Gelen mesaj: " + incoming);
+  const body = req.body.Body?.toLowerCase().trim();
 
-  res.statusCode = 200;
+  // ... isteği işle
+  // örneğin supabase'e kayıt vs.
+
   res.setHeader("Content-Type", "text/xml");
-  return res.end(twiml.toString());
-};
-
-// micro sunucu olarak dışa aktar
-export default createServer(handler);
+  res.status(200).send(twiml.toString());
+}

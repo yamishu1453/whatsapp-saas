@@ -1,54 +1,41 @@
 // api/reminder.js
+import { createClient } from "@supabase/supabase-js";
+import { json } from "@vercel/node";
+import cron from "node-cron"; // eğer gerçekten cron kullanıyorsan, yoksa direkt DB sorgu
 
-import { VercelRequest, VercelResponse } from "@vercel/node";
-const { createClient } = require("@supabase/supabase-js");
-const { Twilio } = require("twilio");
-
-// 1) Ortam değişkenlerinden değerleri al
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY,
-);
-const twilio = new Twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN,
-);
-const FROM_WHATSAPP = "whatsapp:+14155238886"; // Twilio Sandbox numaranız
-
-// 2) Fonksiyonun ana gövdesi
-export default async (req, res) => {
-  try {
-    // Şu anki zamandan 50–70 dakika sonrası arasındaki “booked” kayıtları çek
-    const now = Date.now();
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("*")
-      .eq("status", "booked")
-      .gte("time", new Date(now + 50 * 60 * 1000).toISOString())
-      .lte("time", new Date(now + 70 * 60 * 1000).toISOString());
-
-    if (error) throw error;
-
-    // Her randevu için hatırlatma gönder ve status’u güncelle
-    for (let appt of data) {
-      const when = new Date(appt.time).toLocaleTimeString("tr-TR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      await twilio.messages.create({
-        from: FROM_WHATSAPP,
-        to: appt.customer,
-        body: `⏰ Hatırlatma: ${when} için randevunuz var!`,
-      });
-      await supabase
-        .from("appointments")
-        .update({ status: "reminded" })
-        .eq("id", appt.id);
-    }
-
-    return res.status(200).send(`Sent ${data.length} reminders`);
-  } catch (err) {
-    console.error("Reminder function error:", err);
-    return res.status(500).send("Error sending reminders");
+export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    return res.status(405).end("Method Not Allowed");
   }
-};
+  // Supabase client
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_KEY,
+  );
+
+  // 1. remind tablosundan yapılacakları al
+  const { data, error } = await supabase
+    .from("reminders")
+    .select("*")
+    .eq("scheduled", true);
+
+  if (error) {
+    console.error("Supabase error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+
+  // 2. her birine Twilio ile mesaj gönder
+  const twilioClient = new Twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN,
+  );
+  for (const r of data) {
+    await twilioClient.messages.create({
+      from: process.env.TWILIO_WHATSAPP_FROM,
+      to: `whatsapp:${r.phone}`,
+      body: r.message,
+    });
+  }
+
+  return res.status(200).json({ sent: data.length });
+}
