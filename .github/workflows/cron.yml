@@ -1,0 +1,13 @@
+name: Schedule Reminder
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+
+jobs:
+  reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call reminder endpoint
+        run: |
+          curl -s 'https://whatsapp-saas.vercel.app/api/reminder'
