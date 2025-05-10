@@ -1,14 +1,13 @@
-name: Schedule Reminder
+          name: Schedule Reminder
 
-on:
-  schedule:
-    # Her 10 dakikada bir tetikle
-    - cron: '*/10 * * * *'
+          on:
+            schedule:
+              # Her 10 dakikada bir tetikle
+              - cron: '*/10 * * * *'
 
-jobs:
-  reminder:
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Çağrı: /api/reminder"
-        run: |
-          curl -s -X GET https://whatsapp-saas.vercel.app/api/reminder
+          jobs:
+            reminder:
+              runs-on: ubuntu-latest
+              steps:
+                - name: Çağrı /api/reminder
+                  run: curl -s -X GET https://whatsapp-saas.vercel.app/api/reminder
