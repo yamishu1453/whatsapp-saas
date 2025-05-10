@@ -9,6 +9,6 @@ jobs:
   reminder:
     runs-on: ubuntu-latest
     steps:
-      - name: Çağrı: /api/reminder
+      - name: "Çağrı: /api/reminder"
         run: |
-          curl -s -X GET https://whatsapp-saas.vercel.app/
+          curl -s -X GET https://whatsapp-saas.vercel.app/api/reminder
