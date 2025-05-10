@@ -8,7 +8,4 @@ on:
 jobs:
   reminder:
     runs-on: ubuntu-latest
-    steps:
-      - name: "Çağrı: /api/reminder"
-        run: |
-          curl -s -X GET https://whatsapp-saas.vercel.app/api/reminder
+    steps: name: "Çağrı: /api/reminder" run: | curl -s -X GET https://whatsapp-saas.vercel.app/api/reminder
